@@ -65,16 +65,20 @@ export default {
         if (!chartOutlabels) return
 
         chartOutlabels.forEach(label => {
-            label.positionCenter(elements[label.index])
-            label.updateRects()
+            if (typeof elements[label.index] !== 'undefined') {
+                label.positionCenter(elements[label.index]);
+                label.updateRects();
+            }
         })
 
         outLabelsManager.avoidOverlap(chart)
 
         chartOutlabels.forEach(label => {
-            label.updateRects()
-            label.draw()
-            label.drawLine()
+            if (typeof elements[label.index] !== 'undefined') {
+                label.updateRects();
+                label.draw();
+                label.drawLine();
+            }
         })
 
         ctx.restore()
