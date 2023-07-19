@@ -3,6 +3,15 @@ import OutLabel from './OutLabel'
 
 export default class OutLabelsManager {
     labels: Map<string, Map<number, OutLabel>> = new Map()
+    private static instance: OutLabelsManager;
+
+    public static getInstance(): OutLabelsManager {
+        if (!OutLabelsManager.instance) {
+            OutLabelsManager.instance = new OutLabelsManager();
+        }
+
+        return OutLabelsManager.instance;
+    }
 
     set(id: string): void {
         this.labels.set(id, new Map())

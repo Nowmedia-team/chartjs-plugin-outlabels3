@@ -22,21 +22,27 @@ export function getFontString(font: FontOptions): string {
 export function textSize(
     ctx: CanvasRenderingContext2D,
     lines: RegExpMatchArray,
-    font: FontOptions
+    font: FontOptions,
+    firstLineFont: FontOptions
 ): Size {
     const prev = ctx.font
     let width = 0
-
-    ctx.font = getFontString(font)
+    let height = 0
 
     for (let i = 0; i < lines.length; ++i) {
+        if (lines.length > 1 && i === 0) {
+            ctx.font = getFontString(font)
+        } else {
+            ctx.font = getFontString(firstLineFont)
+        }
         width = Math.max(ctx.measureText(lines[i]).width, width)
+        height += font.lineSize
     }
 
     ctx.font = prev
 
     return {
-        height: lines.length * font.lineSize,
+        height: height,
         width: width,
     }
 }

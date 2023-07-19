@@ -33,10 +33,13 @@ export default class OutLabelsOptions {
     length = 40
     percentPrecision = 1
     valuePrecision = 3
+    useLines = true
+    useMarkers = false
 
     padding: PaddingOptions = new PaddingOptions()
 
     font: FontOptions = new FontOptions()
+    firstLineFont: FontOptions | undefined
 
     backgroundColor(context: any): string {
         return context.dataset.backgroundColor

@@ -8,6 +8,8 @@ import Size from './Size'
 import { Point } from 'chart.js'
 import Rect from './Rect'
 import OutLabelsContext from './OutLabelsContext'
+import Tooltip from './Tooltip'
+import { Chart } from 'chart.js'
 
 export default class OutLabel {
     ctx: CanvasRenderingContext2D
@@ -33,6 +35,9 @@ export default class OutLabel {
     rect: Rect = { height: 0, width: 0, x: 0, y: 0 }
     nx!: number
 
+    tooltip: Tooltip | undefined
+    config: OutLabelsOptions
+
     get center(): Point {
         return {
             x: this.x,
@@ -50,6 +55,7 @@ export default class OutLabel {
             throw new Error('Label display property is set to false.')
         }
 
+        this.config = config
         this.ctx = ctx
         this.index = index
         this.context = context
@@ -60,7 +66,8 @@ export default class OutLabel {
         if (!text) text = '%l %p'
 
         /* Replace label marker */
-        text = text.replace(/%l/gi, label)
+        const shortenedLabel = label.substring(0, 7)
+        text = text.replace(/%l/gi, shortenedLabel + (shortenedLabel.length === label.length ? "" : "\u2026"))
 
         /* Replace value marker with possible precision value */
         ;(text.match(/%v\.?(\d*)/gi) || [])
@@ -117,6 +124,9 @@ export default class OutLabel {
 
         // Init style
         const fontConfig = Object.assign(new FontOptions(), config.font)
+        const firstLineFontConfig = config.firstLineFont ?
+            Object.assign(new FontOptions(), config.firstLineFont) :
+            Object.assign(new FontOptions(), config.font)
         this.style = {
             backgroundColor: resolve(
                 [config.backgroundColor, 'black'],
@@ -133,12 +143,16 @@ export default class OutLabel {
                 resolve([fontConfig]) ?? fontConfig,
                 parseFloat(ctx.canvas.style.height.slice(0, -2))
             ),
+            firstLineFont: parseFont(
+                resolve([firstLineFontConfig]) ?? firstLineFontConfig,
+                parseFloat(ctx.canvas.style.height.slice(0, -2))
+            ),
             padding: toPadding(resolve([config.padding], context, index)),
             textAlign: resolve([config.textAlign, 'left'], context, index),
         }
 
         this.length = resolve([config.length, 40], context, index) ?? 40
-        this.size = textSize(ctx, this.lines, this.style.font)
+        this.size = textSize(ctx, this.lines, this.style.font, this.style.firstLineFont)
     }
 
     computeRect(): Rect {
@@ -172,7 +186,6 @@ export default class OutLabel {
             return
         }
 
-        this.ctx.font = getFontString(this.style.font)
         this.ctx.fillStyle = color
         this.ctx.textAlign = this.nx < 0 ? 'right' : 'left'
         this.ctx.textBaseline = 'middle'
@@ -180,6 +193,12 @@ export default class OutLabel {
         const x = this.x
         let y = this.y
         for (let idx = 0; idx < this.lines.length; ++idx) {
+            if (this.lines.length > 1 && idx === 0) {
+                this.ctx.font = getFontString(this.style.firstLineFont)
+            } else {
+                this.ctx.font = getFontString(this.style.font)
+            }
+
             this.ctx.fillText(
                 this.lines[idx],
                 Math.round(x),
@@ -187,7 +206,11 @@ export default class OutLabel {
                 Math.round(this.size.width)
             )
 
-            y += font.lineSize
+            if (this.lines.length > 1 && idx === 0) {
+                y += this.style.firstLineFont.lineSize
+            } else {
+                y += font.lineSize
+            }
         }
     }
 
@@ -232,9 +255,66 @@ export default class OutLabel {
         this.ctx.restore()
     }
 
-    draw(): void {
+    drawMarker(chart: Chart<'doughnut'>): void {
+
+        const cx = (chart.chartArea.left + chart.chartArea.right) / 2
+        const cy = (chart.chartArea.top + chart.chartArea.bottom) / 2
+
+        let isTopLeft: boolean = false
+        let isTopRight: boolean = false
+        let isBottomLeft: boolean = false
+        let isBottomRight: boolean = false
+
+        if (this.x < cx) {
+            if (this.y < cy) isTopLeft = true
+            else isBottomLeft = true
+        } else {
+            if (this.y < cy) isTopRight = true
+            else isBottomRight = true
+        }
+
+        this.ctx.save()
+
+        this.ctx.beginPath()
+
+        this.ctx.fillStyle = this.style.lineColor;
+        const x = isTopLeft || isBottomLeft ? this.x + 4 : this.x - 12
+        const y = this.y - 5
+        this.ctx.fillRect(x, y, 8, 8)
+
+        this.ctx.restore()
+    }
+
+    draw(chart: Chart<'doughnut'>): void {
         this.drawRect()
         this.drawText()
+        if (!this.tooltip && this.label.length >= 9) {
+            this.drawTooltip(chart)
+        } else if (this.tooltip) {
+            this.updateTooltip(chart)
+        }
+    }
+
+    updateTooltip(chart: Chart<'doughnut'>): void {
+        const region = {
+            x: this.rect.x,
+            y: this.rect.y,
+            w: this.rect.width,
+            h: this.rect.height
+        };
+        if (this.tooltip) {
+            this.tooltip.updateRegion(region)
+        }
+    }
+
+    drawTooltip(chart: Chart<'doughnut'>): void {
+        const region = {
+            x: this.rect.x,
+            y: this.rect.y,
+            w: this.rect.width,
+            h: this.rect.height
+        };
+        this.tooltip = new Tooltip(this.ctx, region, this.label, 150, 300, chart.id);
     }
 
     updateRects(): void {

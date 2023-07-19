@@ -8,7 +8,7 @@ import OutLabelsOptions from './OutLabelsOptions'
 
 declare type OutLabelsPlugin = Plugin<'doughnut', AnyObject>
 
-const outLabelsManager = new OutLabelsManager()
+const outLabelsManager = OutLabelsManager.getInstance()
 
 export default {
     id: 'outlabels',
@@ -56,7 +56,8 @@ export default {
 
         ctx.restore()
     },
-    afterDatasetDraw: function (chart: Chart<'doughnut'>, args) {
+    afterDatasetDraw: function (chart: Chart<'doughnut'>, args, options) {
+        const config = Object.assign(new OutLabelsOptions(), options)
         const ctx = chart.ctx
         const elements = args.meta.data
         ctx.save()
@@ -76,8 +77,11 @@ export default {
         chartOutlabels.forEach(label => {
             if (typeof elements[label.index] !== 'undefined') {
                 label.updateRects();
-                label.draw();
-                label.drawLine();
+                label.draw(chart);
+                if (config.useLines)
+                    label.drawLine();
+                if (config.useMarkers)
+                    label.drawMarker(chart);
             }
         })
 
