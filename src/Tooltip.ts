@@ -40,10 +40,13 @@ export default class Tooltip {
         this.region = region
         this.timeout = timeout
 
-        this.canvas.addEventListener("mousemove", function(this:Tooltip, e:any) {
+        window.addEventListener("mousemove", function(this:Tooltip, e:any) {
             this.check(e);
         }.bind(this), false);
         this.canvas.addEventListener("click", function(this:Tooltip, e:any) {
+            this.check(e);
+        }.bind(this), false);
+        window.addEventListener("scroll", function(this:Tooltip, e:any) {
             this.check(e);
         }.bind(this), false);
     }
@@ -80,21 +83,26 @@ export default class Tooltip {
         this.parent.removeChild(this.div);
     }
 
-    check(e: any): void {
+    isInside(e: any): boolean {
         const pos = this.getPos(e);
-        const posAbs = { x: e.clientX, y: e.clientY };
         const isInside = pos.x >= this.region.x &&
             pos.x < this.region.x + this.region.w &&
             pos.y >= this.region.y &&
             pos.y < this.region.y + this.region.h;
 
+        return isInside;
+    }
+
+    check(e: any): void {
+        const posAbs = { x: e.clientX, y: e.clientY };
+
         if (!this.visible) {
-            if (isInside) {
+            if (this.isInside(e)) {
                 this.show(posAbs);
             }
         }
         else {
-            if (isInside) {
+            if (this.isInside(e)) {
                 this.setDivPos(posAbs);
             } else {
                 this.hide()
