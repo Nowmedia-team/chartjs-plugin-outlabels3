@@ -288,8 +288,9 @@ export default class OutLabel {
     draw(chart: Chart<'doughnut'>): void {
         this.drawRect()
         this.drawText()
-        if (!this.tooltip && this.label.length >= 9) {
-            this.drawTooltip(chart)
+        if (!this.tooltip) {
+            if (this.label.length >= 9)
+                this.drawTooltip(chart)
         } else if (this.tooltip) {
             this.updateTooltip(chart)
         }

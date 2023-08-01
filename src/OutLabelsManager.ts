@@ -21,6 +21,10 @@ export default class OutLabelsManager {
         return this.labels.get(id)
     }
 
+    clean(id: string): void {
+        this.labels.set(id, new Map())
+    }
+
     setLabel(id: string, number: number, label: OutLabel): void {
         const labels = this.get(id)
         if (!labels) return

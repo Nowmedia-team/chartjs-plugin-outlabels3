@@ -13,78 +13,89 @@ const outLabelsManager = OutLabelsManager.getInstance()
 export default {
     id: 'outlabels',
     beforeInit: function (chart) {
-        outLabelsManager.set(chart.id)
+        if (['doughnut', 'pie'].includes(chart.config.type) ) {
+            outLabelsManager.set(chart.id)
+        }
+    },
+    beforeDatasetUpdate: function (chart: Chart<'doughnut'>, args, options) {
+        if (['doughnut', 'pie'].includes(chart.config.type)) {
+            outLabelsManager.clean(chart.id)
+        }
     },
     afterDatasetUpdate: function (chart: Chart<'doughnut'>, args, options) {
-        const config = Object.assign(new OutLabelsOptions(), options)
-        const labels = chart.config.data.labels
-        const dataset = chart.data.datasets[args.index]
-        const elements = args.meta.data
-        const ctx = chart.ctx
+        if (['doughnut', 'pie'].includes(chart.config.type)) {
+            const config = Object.assign(new OutLabelsOptions(), options)
+            const labels = chart.config.data.labels
+            const dataset = chart.data.datasets[args.index]
+            const elements = args.meta.data
+            const ctx = chart.ctx
 
-        ctx.save()
-        for (let i = 0; i < elements.length; ++i) {
-            const el = elements[i]
-            let newLabel = null
+            ctx.save()
+            for (let i = 0; i < elements.length; ++i) {
+                const el = elements[i]
+                let newLabel = null
 
-            const percent =
-                dataset.data[i] /
-                dataset.data.reduce((sum, current) => sum + current)
+                const percent =
+                    dataset.data[i] /
+                    dataset.data.reduce((sum, current) => sum + current)
 
-            const context = {
-                chart: chart,
-                dataIndex: i,
-                dataset: dataset,
-                labels: labels,
-                datasetIndex: args.index,
-                value: dataset.data[i],
-                percent: percent,
-            } as OutLabelsContext
+                const context = {
+                    chart: chart,
+                    dataIndex: i,
+                    dataset: dataset,
+                    labels: labels,
+                    datasetIndex: args.index,
+                    value: dataset.data[i],
+                    percent: percent,
+                } as OutLabelsContext
 
-            const display = resolve([config.display, false], context, i)
-            if (display && el && chart.getDataVisibility(args.index)) {
-                try {
-                    newLabel = new OutLabel(ctx, i, config, context)
-                } catch (e) {
-                    console.warn(e)
-                    newLabel = null
+                const display = resolve([config.display, false], context, i)
+                if (display && el && chart.getDataVisibility(args.index)) {
+                    try {
+                        newLabel = new OutLabel(ctx, i, config, context)
+                    } catch (e) {
+                        console.warn(e)
+                        newLabel = null
+                    }
                 }
+
+                if (newLabel) outLabelsManager.setLabel(chart.id, i, newLabel)
             }
 
-            if (newLabel) outLabelsManager.setLabel(chart.id, i, newLabel)
+            ctx.restore()
         }
-
-        ctx.restore()
     },
     afterDatasetDraw: function (chart: Chart<'doughnut'>, args, options) {
-        const config = Object.assign(new OutLabelsOptions(), options)
-        const ctx = chart.ctx
-        const elements = args.meta.data
-        ctx.save()
+        if (['doughnut', 'pie'].includes(chart.config.type)) {
+            const config = Object.assign(new OutLabelsOptions(), options)
+            const ctx = chart.ctx
+            const elements = args.meta.data
+            ctx.save()
 
-        const chartOutlabels = outLabelsManager.get(chart.id)
-        if (!chartOutlabels) return
+            const chartOutlabels = outLabelsManager.get(chart.id)
+            if (!chartOutlabels) return
 
-        chartOutlabels.forEach(label => {
-            if (typeof elements[label.index] !== 'undefined') {
-                label.positionCenter(elements[label.index]);
-                label.updateRects();
-            }
-        })
+            chartOutlabels.forEach(label => {
+                if (typeof elements[label.index] !== 'undefined') {
+                    label.positionCenter(elements[label.index]);
+                    label.updateRects();
+                }
+            })
 
-        outLabelsManager.avoidOverlap(chart)
+            outLabelsManager.avoidOverlap(chart)
 
-        chartOutlabels.forEach(label => {
-            if (typeof elements[label.index] !== 'undefined') {
-                label.updateRects();
-                label.draw(chart);
-                if (config.useLines)
-                    label.drawLine();
-                if (config.useMarkers)
-                    label.drawMarker(chart);
-            }
-        })
+            chartOutlabels.forEach(label => {
+                if (typeof elements[label.index] !== 'undefined') {
+                    label.updateRects();
+                    label.draw(chart);
+                    if (config.useLines)
+                        label.drawLine();
+                    if (config.useMarkers)
+                        label.drawMarker(chart);
+                }
+            })
 
-        ctx.restore()
+            ctx.restore()
+        }
     },
 } as OutLabelsPlugin
