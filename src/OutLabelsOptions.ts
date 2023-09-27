@@ -35,6 +35,9 @@ export default class OutLabelsOptions {
     valuePrecision = 3
     useLines = true
     useMarkers = false
+    avoidOverlap = true
+    recalculateX = true
+    maxPrcToShow = 0
 
     padding: PaddingOptions = new PaddingOptions()
 

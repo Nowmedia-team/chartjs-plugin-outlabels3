@@ -31,6 +31,11 @@ export default {
             const ctx = chart.ctx
 
             ctx.save()
+            let totalAngles = 0
+            for (let i = 0; i < elements.length; ++i) {
+                const el = elements[i]
+                totalAngles += Math.abs(el.endAngle - el.startAngle)
+            }
             for (let i = 0; i < elements.length; ++i) {
                 const el = elements[i]
                 let newLabel = null
@@ -49,8 +54,10 @@ export default {
                     percent: percent,
                 } as OutLabelsContext
 
+                const prc = Math.abs(el.endAngle - el.startAngle) / totalAngles * 100
+                // console.log('outlabels value = ', context.value, ' el - ', el, 'angles ', el.startAngle, ' ',  el.endAngle, ' prc ', prc.toFixed(2))
                 const display = resolve([config.display, false], context, i)
-                if (display && el && chart.getDataVisibility(args.index)) {
+                if (display && el && chart.getDataVisibility(args.index) && (!config.maxPrcToShow || prc > config.maxPrcToShow) ) {
                     try {
                         newLabel = new OutLabel(ctx, i, config, context)
                     } catch (e) {
@@ -82,7 +89,8 @@ export default {
                 }
             })
 
-            outLabelsManager.avoidOverlap(chart)
+            if (config.avoidOverlap)
+                outLabelsManager.avoidOverlap(chart, config)
 
             chartOutlabels.forEach(label => {
                 if (typeof elements[label.index] !== 'undefined') {

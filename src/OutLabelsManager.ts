@@ -98,6 +98,8 @@ export default class OutLabelsManager {
                         ? Math.sqrt((dy * dy) / (1 - (dx * dx) / rA / rA))
                         : rA
                 maxY = dy
+                // console.log('rB == rA', rB == rA);
+
             }
         })
 
@@ -108,14 +110,17 @@ export default class OutLabelsManager {
             const rA = r + item.length
             const rA2 = rA * rA
             // Use ellipse implicit function to calculate x
-            const dx = Math.sqrt((1 - Math.abs((dy * dy) / rB2)) * rA2)
+            const dx = Math.sqrt(Math.abs((1 - Math.abs((dy * dy) / rB2)) * rA2)) // added Math.abs (else NaN)
+            // console.log('abs rA2 rB2 dy / dx  dir ', Math.abs((1 - Math.abs((dy * dy) / rB2)) * rA2), rA2, ' ', rB2, ' ', dy, ' / ', dx, ' ', dir);
+
             const newX = cx + dx * dir
+            // console.log('text x cx dx dir newX: r: ', item.text, item.x, cx, dx, dir, newX, r);
 
             item.x = newX
         })
     }
 
-    avoidOverlap(chart: Chart<'doughnut'>): void {
+    avoidOverlap(chart: Chart<'doughnut'>, config: any): void {
         const labels = this.get(chart.id)
         if (labels) {
             const cx = (chart.chartArea.left + chart.chartArea.right) / 2
@@ -136,17 +141,23 @@ export default class OutLabelsManager {
                 }
             })
 
-            if (this.adjustQuadrant(topLeftList))
+            // console.log('avoidOverlap only adjusts topLeftList ');
+            // console.log('topLeftList', topLeftList);
+            // console.log('topRightList', topRightList);
+            // console.log('bottomLeftList', bottomLeftList);
+            // console.log('bottomRightList', bottomRightList);
+
+            if (this.adjustQuadrant(topLeftList) && config.recalculateX)
                 this.recalculateX(chart, topLeftList)
 
-            if (this.adjustQuadrant(topRightList))
-                this.recalculateX(chart, topRightList)
+            // if (this.adjustQuadrant(topRightList))
+            //     this.recalculateX(chart, topRightList)
 
-            if (this.adjustQuadrant(bottomLeftList))
-                this.recalculateX(chart, bottomLeftList)
+            // if (this.adjustQuadrant(bottomLeftList))
+            //     this.recalculateX(chart, bottomLeftList)
 
-            if (this.adjustQuadrant(bottomRightList))
-                this.recalculateX(chart, bottomRightList)
+            // if (this.adjustQuadrant(bottomRightList))
+            //     this.recalculateX(chart, bottomRightList)
         }
     }
 }
