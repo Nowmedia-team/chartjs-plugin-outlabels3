@@ -92,6 +92,8 @@ export default {
             if (config.avoidOverlap)
                 outLabelsManager.avoidOverlap(chart, config)
 
+            outLabelsManager.fixLabelPositions(chart, config)
+
             chartOutlabels.forEach(label => {
                 if (typeof elements[label.index] !== 'undefined') {
                     label.updateRects();

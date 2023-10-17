@@ -3,6 +3,8 @@ import OutLabel from './OutLabel'
 
 export default class OutLabelsManager {
     labels: Map<string, Map<number, OutLabel>> = new Map()
+    fixCnt: number = 0
+    fixLimitCnt: number = 100
     private static instance: OutLabelsManager;
 
     public static getInstance(): OutLabelsManager {
@@ -159,5 +161,94 @@ export default class OutLabelsManager {
             // if (this.adjustQuadrant(bottomRightList))
             //     this.recalculateX(chart, bottomRightList)
         }
+    }
+
+    fixLabelPositions(chart: Chart<'doughnut'>, config: any): void {
+        console.log('fixLabelPositions')
+        const labels = this.get(chart.id)
+        if (!labels) {
+            return
+        }
+
+        const foundIntersections: OutLabel[][] = []
+        labels.forEach((item, i) => {
+            labels.forEach((cmpitem, j) => {
+                if (i === j) {
+                    return
+                }
+                if (this.intersects(item, cmpitem)) {
+                    foundIntersections.push([item, cmpitem])
+                }
+          })
+        })
+        console.log('foundIntersections', foundIntersections)
+        let fixPair: OutLabel[] = []
+        foundIntersections.forEach(pair => {
+          let highItem = pair[0].y <= pair[1].y ? pair[0] : pair[1]
+          let fixHighItem = fixPair.length ? (fixPair[0].y <= fixPair[1].y ? fixPair[0] : fixPair[1]) : undefined
+          if (fixPair.length === 0 || (typeof fixHighItem !== 'undefined' && highItem.y < fixHighItem.y)) {
+            fixPair = pair
+          }
+        })
+        if (fixPair.length) {
+            const cx = (chart.chartArea.left + chart.chartArea.right) / 2
+            const cy = (chart.chartArea.top + chart.chartArea.bottom) / 2
+            const item = fixPair[0]
+            const cmpitem = fixPair[1]
+            let highItem = item.y <= cmpitem.y ? item : cmpitem
+            let lowItem = item.y <= cmpitem.y ? cmpitem : item
+            const rect: any = this.intersectingRect(item, cmpitem)
+
+            const isTopSector = highItem.y < cy
+            const isLeftSector = highItem.x < cx
+            // labels.forEach(label => {
+            //     if (label.x < cx) {
+            //         if (label.y < cy) topLeftList.push(label)
+            //         else bottomLeftList.push(label)
+            //     } else {
+            //         if (label.y < cy) topRightList.push(label)
+            //         else bottomRightList.push(label)
+            //     }
+            // })
+            let ydiff = rect.h * 0.90
+            let xdiff = rect.w * 0.10
+            if (isTopSector) {
+                highItem.y = highItem.y - ydiff
+                if (isLeftSector) {
+                    highItem.x = highItem.x - xdiff;
+                } else {
+                    highItem.x = highItem.x + xdiff;
+                }
+            } else {
+                lowItem.y = lowItem.y + ydiff
+                if (isLeftSector) {
+                    highItem.x = highItem.x - xdiff;
+                } else {
+                    highItem.x = highItem.x + xdiff;
+                }
+            }
+        }
+        this.fixCnt++
+        if (foundIntersections.length && this.fixCnt < this.fixLimitCnt) {
+            this.fixLabelPositions(chart, config)
+        }
+    }
+
+    intersects(a: OutLabel, b: OutLabel): boolean {
+        const ax1 = a.x + a.rect.width
+        const ay1 = a.y + a.rect.height
+        const bx1 = b.x + b.rect.width
+        const by1 = b.y + b.rect.height
+
+        return !( ax1 < b.x || ay1 < b.y || a.x > bx1 || a.y > by1 );
+    }
+
+    intersectingRect(a: OutLabel, b: OutLabel): object {
+        var x = Math.max(a.x, b.x);
+        var y = Math.max(a.y, b.y);
+        var xx = Math.min(a.x + a.rect.width, b.x + b.rect.width);
+        var yy = Math.min(a.y + a.rect.height, b.y + b.rect.height);
+
+        return ({x: x, y: y, w: xx - x, h: yy - y});
     }
 }
