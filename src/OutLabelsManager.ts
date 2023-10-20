@@ -152,14 +152,14 @@ export default class OutLabelsManager {
             if (this.adjustQuadrant(topLeftList) && config.recalculateX)
                 this.recalculateX(chart, topLeftList)
 
-            // if (this.adjustQuadrant(topRightList))
-            //     this.recalculateX(chart, topRightList)
+            if (this.adjustQuadrant(topRightList))
+                this.recalculateX(chart, topRightList)
 
-            // if (this.adjustQuadrant(bottomLeftList))
-            //     this.recalculateX(chart, bottomLeftList)
+            if (this.adjustQuadrant(bottomLeftList))
+                this.recalculateX(chart, bottomLeftList)
 
-            // if (this.adjustQuadrant(bottomRightList))
-            //     this.recalculateX(chart, bottomRightList)
+            if (this.adjustQuadrant(bottomRightList))
+                this.recalculateX(chart, bottomRightList)
         }
     }
 
