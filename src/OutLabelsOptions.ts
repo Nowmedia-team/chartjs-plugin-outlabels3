@@ -36,6 +36,7 @@ export default class OutLabelsOptions {
     useLines = true
     useMarkers = false
     avoidOverlap = true
+    fixLabelPositions = false
     recalculateX = true
     maxPrcToShow = 0
 

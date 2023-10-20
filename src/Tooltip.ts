@@ -35,7 +35,7 @@ export default class Tooltip {
         this.ctx.font = getFontString(tmp)
         const calcedWidth = Math.max(ctx.measureText(text).width + 30, minWidth)
         this.ctx.restore()
-        this.div.style.cssText = "position: fixed; padding: 7px; font-size: 14px; font-family: 'Akrobat'; color: #F59D24; border-radius: 60px; background-color: #FFFFFF; box-shadow: 0px 4px 4px 0px #00000040; pointer-events: none; width: " + calcedWidth + "px";
+        this.div.style.cssText = "position: fixed; z-index: 2; padding: 7px; font-size: 14px; font-family: 'Akrobat'; color: #F59D24; border-radius: 60px; background-color: #FFFFFF; box-shadow: 0px 4px 4px 0px #00000040; pointer-events: none; width: " + calcedWidth + "px";
         this.div.innerHTML = text;
         this.region = region
         this.timeout = timeout

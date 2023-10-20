@@ -265,7 +265,7 @@ export default class OutLabel {
         let isBottomLeft: boolean = false
         let isBottomRight: boolean = false
 
-        if (this.x < cx) {
+        if (this.x <= cx) {
             if (this.y < cy) isTopLeft = true
             else isBottomLeft = true
         } else {

@@ -75,37 +75,41 @@ export default {
     afterDatasetDraw: function (chart: Chart<'doughnut'>, args, options) {
         if (['doughnut', 'pie'].includes(chart.config.type)) {
             const config = Object.assign(new OutLabelsOptions(), options)
-            const ctx = chart.ctx
-            const elements = args.meta.data
-            ctx.save()
+            const display = resolve([config.display, false])
+            if (display) {
+                const ctx = chart.ctx
+                const elements = args.meta.data
+                ctx.save()
 
-            const chartOutlabels = outLabelsManager.get(chart.id)
-            if (!chartOutlabels) return
+                const chartOutlabels = outLabelsManager.get(chart.id)
+                if (!chartOutlabels) return
 
-            chartOutlabels.forEach(label => {
-                if (typeof elements[label.index] !== 'undefined') {
-                    label.positionCenter(elements[label.index]);
-                    label.updateRects();
-                }
-            })
+                chartOutlabels.forEach(label => {
+                    if (typeof elements[label.index] !== 'undefined') {
+                        label.positionCenter(elements[label.index]);
+                        label.updateRects();
+                    }
+                })
 
-            if (config.avoidOverlap)
-                outLabelsManager.avoidOverlap(chart, config)
+                if (config.avoidOverlap)
+                    outLabelsManager.avoidOverlap(chart, config)
 
-            outLabelsManager.fixLabelPositions(chart, config)
+                if (config.fixLabelPositions)
+                    outLabelsManager.fixLabelPositions(chart, config)
 
-            chartOutlabels.forEach(label => {
-                if (typeof elements[label.index] !== 'undefined') {
-                    label.updateRects();
-                    label.draw(chart);
-                    if (config.useLines)
-                        label.drawLine();
-                    if (config.useMarkers)
-                        label.drawMarker(chart);
-                }
-            })
+                chartOutlabels.forEach(label => {
+                    if (typeof elements[label.index] !== 'undefined') {
+                        label.updateRects();
+                        label.draw(chart);
+                        if (config.useLines)
+                            label.drawLine();
+                        if (config.useMarkers)
+                            label.drawMarker(chart);
+                    }
+                })
 
-            ctx.restore()
+                ctx.restore()
+            }
         }
     },
 } as OutLabelsPlugin
