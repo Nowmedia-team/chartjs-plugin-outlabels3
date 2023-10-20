@@ -278,7 +278,7 @@ export default class OutLabel {
         this.ctx.beginPath()
 
         this.ctx.fillStyle = this.style.lineColor;
-        const x = isTopLeft || isBottomLeft ? this.x + 4 : this.x - 12
+        const x = this.ctx.textAlign === 'right' ? this.x + 4 : this.x - 12
         const y = this.y - 5
         this.ctx.fillRect(x, y, 8, 8)
 
