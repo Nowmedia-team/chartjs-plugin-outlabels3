@@ -17,31 +17,31 @@ allDependencies.push('chart.js/helpers')
 
 export default [
   // browser-friendly UMD build
-  {
-    input: 'src/index.ts',
-    output: {
-      name,
-      file: pkg.browser,
-      format: 'umd',
-      indent: false,
-      globals,
-    },
+  // {
+  //   input: 'src/index.ts',
+  //   output: {
+  //     name,
+  //     file: pkg.browser,
+  //     format: 'umd',
+  //     indent: false,
+  //     globals,
+  //   },
 
-    plugins: [resolve(), commonjs(), typescript()],
-    external: allDependencies,
-  },
-  {
-    input: 'src/index.ts',
-    output: {
-      name,
-      file: pkg.browserMin,
-      format: 'umd',
-      indent: false,
-      globals,
-    },
-    plugins: [resolve(), commonjs(), typescript(), terser()],
-    external: allDependencies,
-  },
+  //   plugins: [resolve(), commonjs(), typescript()],
+  //   external: allDependencies,
+  // },
+  // {
+  //   input: 'src/index.ts',
+  //   output: {
+  //     name,
+  //     file: pkg.browserMin,
+  //     format: 'umd',
+  //     indent: false,
+  //     globals,
+  //   },
+  //   plugins: [resolve(), commonjs(), typescript(), terser()],
+  //   external: allDependencies,
+  // },
   {
     input: 'src/index.esm.ts',
     output: {
